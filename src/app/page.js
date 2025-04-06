@@ -1,41 +1,34 @@
-"use client"
+"use client";
+
+import { useCallback } from "react";
 import Search from "@/components/Search";
 import Categories from "@/components/Categories";
 import Api from "@/utils/db";
-import { useEffect, useState } from "react";
+import useStorage from "@/hooks/useStorage";
 
 export default function Home() {
   const db = Api;
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useStorage("search", "");
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedSearch = localStorage.getItem("search");
-      if (savedSearch) {
-        setSearch(savedSearch);
-      }
-    }
-  }, []);
-
-  // Save search to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem("search", search);
-    }
-  }, [search]);
-
-  const onListener = (e) => {
-    setSearch(e.target.value);
-  };
+  const onListener = useCallback(
+    (e) => {
+      setSearch(e.target.value);
+    },
+    [setSearch]
+  );
 
   const filteredData = db.filter((item) =>
     item.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="container mx-auto px-4 flex flex-col h-screen items-center justify-around">
+    <div className="container mx-auto px-4 flex flex-col min-h-screen items-center gap-8 py-6">
       <Search onSearch={onListener} lastSearch={search} />
-      <Categories key={db.id} data={filteredData} />
+      {filteredData.length === 0 ? (
+        <p className="text-slate-500 text-center">Nothing to show😕</p>
+      ) : (
+        <Categories data={filteredData} />
+      )}
     </div>
   );
 }
